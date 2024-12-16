@@ -1,0 +1,24 @@
+{
+  "name": "gk-firebase-manager",
+  "version": "0.0.1",
+  "description": "Firebase manager package",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "yarn build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^11.1.0",
+    "firebase-admin": "^12.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
