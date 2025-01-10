@@ -29,8 +29,7 @@ type FirebaseConfig = Record<
   | 'projectId'
   | 'storageBucket'
   | 'messagingSenderId'
-  | 'appId'
-  | 'measurementId',
+  | 'appId',
   string
 >
 
