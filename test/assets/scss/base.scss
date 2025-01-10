@@ -1,0 +1,154 @@
+@forward 'variables';
+@use 'mixin' as *;
+
+:root {
+  interpolate-size: allow-keywords;
+}
+
+:where(button, [type='button'], [type='reset'], [type='submit']) {
+  touch-action: manipulation;
+}
+
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+html, body {
+  overflow  : hidden;
+  block-size: 100%;
+}
+
+body {
+  min-height           : 100dvh;
+  background-color     : var(--base-color);
+  color                : var(--text-color);
+  font-family          : 'Noto Sans JP', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Yu Gothic', sans-serif;
+  font-size            : var(--fs-medium);
+  line-height          : var(--line-height-normal);
+  letter-spacing       : var(--letter-spacing-normal);
+  word-break           : auto-phrase;
+  overflow-wrap        : anywhere;
+  font-feature-settings: 'palt';
+  leading-trim         : both;
+  overscroll-behavior  : none;
+}
+
+p {
+  margin : 0;
+  padding: 0;
+}
+
+i {
+  color: var(--text-color);
+}
+
+span,
+small {
+  display: inline-block;
+}
+
+small {
+  font-size: var(--fs-small);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin     : 0;
+  padding    : 0;
+  color      : inherit;
+  font-weight: bold;
+  font-size  : inherit;
+  z-index: var(--z-index-contents);
+}
+
+ul, ol, li, dl, dt, dd {
+  margin    : 0;
+  padding   : 0;
+  list-style: none;
+
+  &[role='list'] {
+    list-style: none;
+  }
+}
+
+a {
+  @include textLink;
+}
+
+em,
+address {
+  font-style: normal;
+}
+
+img {
+  display   : block;
+  max-width : 100%;
+  max-height: 100%;
+}
+
+fieldset {
+  margin : 0;
+  padding: 0;
+  border : none;
+}
+
+legend {
+  margin : 0;
+  padding: 0;
+}
+
+input,
+option,
+button,
+select {
+  background-color: transparent;
+  border          : none;
+  outline         : none;
+  color           : var(--text-color);
+  line-height     : var(--line-height-normal);
+  letter-spacing  : var(--letter-spacing-normal);
+  appearance      : none;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--disable-text-color);
+  }
+
+  &[type="date"] {
+    &:focus,
+    &:valid {
+      &::before {
+        display: none;
+      }
+    }
+  }
+}
+
+button {
+  padding   : 0;
+  border    : none;
+  outline   : none;
+  font      : inherit;
+  color     : inherit;
+  background: none;
+  cursor    : pointer;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing : 0;
+
+  th,
+  td {
+    text-align    : left;
+    vertical-align: middle;
+  }
+}
+
+::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}

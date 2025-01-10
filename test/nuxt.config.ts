@@ -29,5 +29,10 @@ export default defineNuxtConfig({
     },
   },
 
+  css: [
+    'modern-css-reset/dist/reset.min.css',
+    '~/assets/scss/base.scss',
+  ],
+
   compatibilityDate: '2024-12-23',
 })

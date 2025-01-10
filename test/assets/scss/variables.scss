@@ -1,0 +1,83 @@
+@use 'functions' as *;
+
+$maxViewport: 1440;
+$minViewport: 740;
+
+:root {
+  // COLOR
+  --pink                    : #D6B0BA;
+  --light-pink              : #F7EFF1;
+  --dark-pink               : #b8839e;
+  --blue                    : #9FB0CF;
+  --yellow                  : #E8E3B5;
+  --light-yellow            : #E8E9D5;
+  --orange                  : #E3C7B3;
+  --brown                   : #3f3d51;
+  --black                   : #262338;
+  --gray                    : #6c6c6c;
+  --light-gray              : #c2bbbb;
+  --white                   : #ffffff;
+  --red                     : #F08080;
+  --transparent-light-white : #ffffff66;
+  --transparent-white       : #ffffff99;
+  --transparent-strong-white: #ffffffcc;
+  --base-color              : var(--white);
+  --main-color              : var(--pink);
+  --text-color              : var(--black);
+  --disable-text-color      : var(--light-gray);
+  --link-color              : var(--dark-pink);
+  --caution-color           : var(--red);
+  --border-color            : var(--light-yellow);
+  --button-color            : linear-gradient(267deg, var(--yellow) 0%, var(--orange) 68%, var(--pink) 100%);
+  --top-button-color        : linear-gradient(45deg,#E0C6CC 25%,#EBD2C6 50%,#E8E5D3 75%,#EFEBDD 100%);
+  --secondary-button-color  : linear-gradient(267deg, #E8D7DC 8%, #E3C4C4 92%);
+  --disabled-button-color   : linear-gradient(267deg, var(--light-gray) 0%, var(--light-gray) 100%);
+  --caution-button-color    : linear-gradient(267deg, var(--red) 0%, var(--red) 100%);
+  --shadow-color            : #846F74;
+  --contents-shadow         : 0 0 var(--sp-large) rgba(38, 35, 56, .2);
+  
+  // FONT
+  --fs-medium            : #{calcClamp(13, 14, $minViewport, $maxViewport)};
+  --fs-large             : #{calcClamp(14, 16, $minViewport, $maxViewport)};
+  --fs-larger            : #{calcClamp(18, 22, $minViewport, $maxViewport)};
+  --fs-max               : #{calcClamp(20, 28, $minViewport, $maxViewport)};
+  --fs-small             : #{calcClamp(10, 12, $minViewport, $maxViewport)};
+  --fs-smaller           : #{calcClamp(10, 11, $minViewport, $maxViewport)};
+  --fs-main-title        : #{calcClamp(150, 350, $minViewport, $maxViewport)};
+  --line-height-tight    : 1.12;
+  --line-height-narrow   : 1.4;
+  --line-height-normal   : 1.6;
+  --letter-spacing-wide  : 1em;
+  --letter-spacing-normal: .08em;
+  --letter-spacing-narrow: .04em;
+
+  // VALUE
+  --bv                 : #{calcClamp(6, 8, $minViewport, $maxViewport)};
+  --sp                 : #{calcClamp(6, 8, $minViewport, $maxViewport)};
+  --sp-larger          : calc(var(--sp) * 8);
+  --sp-large           : calc(var(--sp) * 4);
+  --sp-medium          : calc(var(--sp) * 2);
+  --sp-small           : var(--sp);
+  --sp-min             : calc(var(--sp) / 2);
+  --radius-normal      : var(--bv);
+  --radius-small       : calc(var(--bv) / 2);
+  --user-icon-size     : calc(var(--bv) * 8);
+  --icon-small         : calc(var(--bv) * 2);
+  --icon-normal        : calc(var(--bv) * 3);
+  --blur               : 16px;
+  --golden-ratio       : 1.618 / 1;
+  --silver-ratio       : 1.414 / 1;
+  --mobile-lower-width : 430px;
+  --tablet-lower-width : 768px;
+  --desktop-lower-width: 980px;
+  --contents-max-width : 330px;
+  --z-index-max        : 100;
+  --z-index-overlay    : 90;
+  --z-index-tooltip    : 80;
+  --z-index-nav        : 70;
+  --z-index-header     : 60;
+  --z-index-contents   : 50;
+  --z-index-decoration : -1;
+  --z-index-background : -10;
+  --transition-duration: .3s;
+}
