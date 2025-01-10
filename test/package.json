@@ -1,12 +1,26 @@
 {
-  "name": "test",
+  "name": "stewp",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --port 5555",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "@geckou/vue-ui-components": "latest",
+    "@nuxt/eslint-config": "^0.7.4",
+    "@nuxt/types": "^2.17.1",
+    "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxtjs/firebase": "^8.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "@volar-plugins/vetur": "latest",
+    "eslint": "^9.17.0",
+    "firebase": "^11.1.0",
+    "firebase-admin": "^13.0.2",
+    "nuxt": "^3.7.4",
+    "sass": "^1.79.4"
   }
 }
