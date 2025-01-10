@@ -9,7 +9,7 @@
     "preview": "nuxt preview"
   },
   "devDependencies": {
-    "@geckou/vue-ui-components": "latest",
+    "@geckou/vue-ui-components": "^0.0.57",
     "@nuxt/eslint-config": "^0.7.4",
     "@nuxt/types": "^2.17.1",
     "@nuxtjs/eslint-config-typescript": "^12.0.0",
@@ -21,6 +21,9 @@
     "firebase": "^11.1.0",
     "firebase-admin": "^13.0.2",
     "nuxt": "^3.7.4",
-    "sass": "^1.79.4"
+    "sass": "^1.83.1"
+  },
+  "dependencies": {
+    "modern-css-reset": "^1.4.0"
   }
 }

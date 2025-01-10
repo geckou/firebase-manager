@@ -1,0 +1,102 @@
+@mixin hover {
+  @media (hover: hover) {
+    &:where(:any-link, :enabled, summary):hover {
+      @content;
+    }
+  }
+}
+
+@mixin textLink {
+  & {
+    display        : inline-block;
+    color          : var(--link-color);
+    fill           : currentColor;
+    text-decoration: none;
+    transition     : all var(--transition-duration);
+    cursor         : pointer;
+    opacity        : 1;
+  }
+
+  @include hover {
+    opacity: .8;
+  }
+}
+
+@mixin textEllipsis($line: 1) {
+  display: -webkit-box;
+  -webkit-line-clamp: $line;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+
+@mixin hideScrollbar {
+  overflow-x        : auto;
+  scrollbar-width   : none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display:none;
+  }
+}
+
+@mixin media($range) {
+  @if $range == 'smallDevice' {
+    @media all and (width <= 300px) { @content; }
+  } @else if $range == 'mobile' {
+    @media all and (width <= 431px) { @content; }
+  } @else if $range == 'tablet' {
+    @media all and (width <= 767px) { @content; }
+  } @else if $range == 'desktop' {
+    @media all and (768px <= width) { @content; }
+  }
+}
+
+@mixin icon($size: var(--icon-normal), $color: currentColor) {
+  width     : 100%;
+  height    : 100%;
+  max-width : $size;
+  max-height: $size;
+  fill      : $color;
+}
+
+@mixin overlay {
+  padding         : var(--sp-large);
+  background-color: var(--transparent-white);
+  backdrop-filter : blur(var(--blur));
+  inline-size     : 100%;
+  block-size      : 100%;
+  position        : absolute;
+  top             : 0;
+  left            : 0;
+  z-index         : var(--z-index-overlay);
+}
+
+@mixin appearDisappearDots {
+  @keyframes appearDisappear {
+    0%, 100% {
+      opacity: 0;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  &::before,
+  &::after {
+    content  : '.';
+    position : absolute;
+    opacity  : 0;
+    animation: appearDisappear 3s infinite;
+  }
+
+  &::before {
+    left           : 100%;
+    animation-delay: 1s;
+  }
+
+  &::after {
+    left           : calc(100% + .7ch);
+    animation-delay: 2s;
+  }
+}
