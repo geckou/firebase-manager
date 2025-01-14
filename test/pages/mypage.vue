@@ -16,8 +16,8 @@ const changeEmail = async () => {
     const res = await fireBaseAuthManager.updateEmailAddress({email:email.value, password:password.value})
     const { status, data } = res || {}
     if ( status === 'success' ) {
-      navigateTo('/')
-      console.log('メールアドレスを変更しました')
+      navigateTo('/change-action')
+      console.log('メールアドレス変更の認証メールを送信しました')
     } else {
       console.error(data)
     }
@@ -31,7 +31,7 @@ const changePassword = async () => {
     const res = await fireBaseAuthManager.sendResetPasswordEmail(email.value)
     const { status, data } = res || {}
     if ( status === 'success' ) {
-      navigateTo('/')
+      navigateTo('/change-action')
       console.log('パスワードリセットメールを送信しました')
     } else {
       console.error(data)
