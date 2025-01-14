@@ -14,6 +14,14 @@ export default defineNuxtConfig({
     },
   },
 
+  app: {
+    head: {
+      meta: [
+        { name: 'robots', content: 'noindex, nofollow' },
+      ],
+    },
+  },
+
   components: {
     global: true,
     dirs  : ['~/components'],
@@ -25,6 +33,11 @@ export default defineNuxtConfig({
         scss: {
           api: 'modern-compiler',
         },
+      },
+    },
+    build: {
+      rollupOptions: {
+        external: ['gk-firebase-manager'], // gk-firebase-managerを外部モジュールとして指定
       },
     },
   },
