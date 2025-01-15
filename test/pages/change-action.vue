@@ -7,6 +7,7 @@ import { sendEmailVerification } from 'firebase/auth'
 import { FireBaseAuthManager } from 'gk-firebase-manager'
 
 const oobCode = ref('')
+const mode = ref('')
 const password = ref('')
 const fireBaseAuthManager = await FireBaseAuthManager.getInstance()
 
@@ -29,16 +30,18 @@ const emailVerification = async () => {
   try {
     const res = await fireBaseAuthManager.verifyEmail(oobCode.value)
     const { status, data } = res || {}
-    if ( status === 'success' ) {
+
+    if (status === 'success') {
       navigateTo('/')
       console.log('メールアドレスの認証が完了しました。')
     } else {
-      console.error(data)
+      console.error('エラー: ', data)
     }
   } catch (error: any) {
-    console.error(error)
+    console.error('認証中にエラーが発生しました:', error)
   }
 }
+
 </script>
 
 <template>

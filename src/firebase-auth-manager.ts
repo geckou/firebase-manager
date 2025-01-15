@@ -70,6 +70,7 @@ class FireBaseAuthManager {
     return FireBaseAuthManager.instance
   }
 
+    // FireBaseAuthManagerのインスタンスを取得
   public async getAuthUser(): Promise<{ user: User | null, claims: CustomClaims | null }> {
     return {
       user  : this.authUser,
@@ -77,6 +78,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // Googleでログイン
   public async loginWithGoogle(): Promise<Result<string | FirebaseError>> {
     try {
       const provider = new GoogleAuthProvider()
@@ -92,6 +94,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // メールとパスワードでログイン
   public async loginWithEmail({ email, password }: AuthInfo): Promise<Result<User | string | FirebaseError>> {
     try {
       const { user } = await signInWithEmailAndPassword(this.auth, email, password)
@@ -112,6 +115,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // 確認メールを再送信
   public async resendVerifyEmail({ email, password }: AuthInfo): Promise<Result<string | FirebaseError>> {
     try {
       const { user } = await signInWithEmailAndPassword(this.auth, email, password)
@@ -123,6 +127,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // 確認メールを送信
   public async sendVerifyEmail(user: User): Promise<Result<string | FirebaseError>> {
     try {
       await sendEmailVerification(user)
@@ -133,6 +138,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // ユーザー登録
   public async signUp({ email, password }: AuthInfo): Promise<Result<User | FirebaseError>> {
     try {
       const { user } = await createUserWithEmailAndPassword(this.auth, email, password)
@@ -145,6 +151,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // ログイン状態を確認
   public async verifyLogin(): Promise<Result<boolean>> {
     return new Promise<Result<boolean>>(resolve => {
       const unsubscribe = onAuthStateChanged(this.auth, async user => {
@@ -166,6 +173,7 @@ class FireBaseAuthManager {
     })
   }
 
+  // 再認証
   public async reauthenticate({ email, password }: AuthInfo): Promise<Result<string | FirebaseError>> {
     if (!this.authUser) return { status: 'error', data: 'User not logged in' }
     const credential = EmailAuthProvider.credential(email, password)
@@ -178,6 +186,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // アカウント削除
   public async deleteAccount({ email, password }: AuthInfo): Promise<Result<string | FirebaseError>> {
     if (!this.authUser) {
       console.error('User not logged in')
@@ -228,6 +237,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // 匿名ユーザーのアカウント削除
   public async deleteAnonymousAccount(): Promise<Result<string | FirebaseError>> {
     if (!this.authUser) {
       console.error('User not logged in')
@@ -247,6 +257,7 @@ class FireBaseAuthManager {
     }
   }
 
+    // ログアウト
   public async logout(): Promise<Result<string | FirebaseError>> {
     try {
       await signOut(this.auth)
@@ -257,6 +268,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // メールアドレスの更新
   public async updateEmailAddress({ email, password }: AuthInfo): Promise<Result<string | FirebaseError>> {
     const currentUser = this.auth.currentUser
     const currentEmail = currentUser?.email
@@ -286,6 +298,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // メールアドレスの確認ステータスを確認
   public async checkEmailVerification(): Promise<Result<boolean>> {
     const currentUser = this.auth.currentUser
 
@@ -321,6 +334,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // パスワードリセットメールを送信
   public async sendResetPasswordEmail(email: string): Promise<Result<string | FirebaseError>> {
     try {
       await sendPasswordResetEmail(this.auth, email)
@@ -331,6 +345,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // パスワードのリセット
   public async changePassword(oobCode: string, password: string): Promise<Result<string | FirebaseError>> {
     try {
       await verifyPasswordResetCode(this.auth, oobCode)
@@ -342,6 +357,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // 認証プロバイダーによる再認証を実行する
   public async reauthenticateUser(providerId: string, authInfo: AuthInfo): Promise<boolean> {
     if (providerId === 'google.com') {
       const { status } = await this.loginWithGoogle()
@@ -353,6 +369,7 @@ class FireBaseAuthManager {
     return false
   }
 
+  // メール確認用のコードを適用
   public async verifyEmail(oobCode: string): Promise<Result<string | FirebaseError>> {
     try {
       await applyActionCode(this.auth, oobCode)
@@ -363,6 +380,7 @@ class FireBaseAuthManager {
     }
   }
 
+  // 匿名ユーザーとしてログイン
   public async signInAnonymously(): Promise<Result<string | FirebaseError>> {
     try {
       await signInAnonymously(this.auth)

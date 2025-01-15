@@ -199,6 +199,8 @@ const EmailVerification = async () => {
           </div>
       </div>
     </div>
+    <OperationArea>
+    </OperationArea>
   </div>
 </template>
 
