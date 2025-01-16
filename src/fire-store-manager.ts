@@ -74,12 +74,12 @@ class FireStoreManager {
     return collection(this.db, collectionName, ...pathSegments)
   }
 
-    // ドキュメント参照を取得する
+  // ドキュメント参照を取得する
   public getDoc(collectionName: string, docName: string = '') {
     return doc(this.db, collectionName, docName)
   }
 
-    // collectionName で指定されたコレクションの設定ドキュメントを取得する
+    // 指定されたコレクションの設定ドキュメントを取得する
   public getSettingDoc() {
     return doc(this.getCollection(this.collectionName))
   }
@@ -177,15 +177,13 @@ class FireStoreManager {
   }
 
     // ドキュメントを作成し、参照を返す
-  public createDocRef<T>(
-    collection: CollectionReference,
-    docData: T,
-  ): Promise<DocumentData> {
-    return addDoc(collection, docData as any)
+  public createDocRef<T>(docData: T): Promise<DocumentData> {
+    return addDoc(this.getCollection(this.collectionName), docData as any)
   }
 
     // ドキュメントのスナップショットを監視する
   public onSnapshot(docId: string, snapshotFunction: OnSnapshotFunction): () => void {
+    console.log('Subscribed to snapshot', docId, this.collectionName)
     const docRef = this.getDoc(this.collectionName, docId)
     
     const unsubscribe = useSnapshot(
@@ -203,16 +201,7 @@ class FireStoreManager {
     return unsubscribe
   }
 
-    // カスタムコレクションを作成
-  public createCustomCollection(
-    db: Firestore,
-    pathName: string,
-    pathSegments: string[] = [],
-  ) {
-    return collection(db, pathName, ...pathSegments)
-  }
-
-    // クエリ条件に一致するドキュメントを取得
+  // クエリ条件に一致するドキュメントを取得
   public async getCollectionByQuery({
     queries = [],
     orderBy = [],

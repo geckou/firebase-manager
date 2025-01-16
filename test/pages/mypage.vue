@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { 
   GKTextBox,
-  GKBasicButton
+  GKBasicButton,
+  GKSelectBox 
 } from '@geckou/vue-ui-components'
 import { FireBaseAuthManager } from 'gk-firebase-manager'
 
@@ -10,6 +11,7 @@ const email = ref('')
 const fireBaseAuthManager = await FireBaseAuthManager.getInstance()
 const userStatus = ref(false)
 const emailStatus = ref(false)
+const selectedMethod = ref('email')
 
 const changeEmail = async () => {
   try {
@@ -122,12 +124,23 @@ const EmailVerification = async () => {
 </script>
 
 <template>
-  <div>
-    <div :class="$style.container">
-      <!-- 登録メールアドレスの変更 -->
-      <div :class="$style.contents">
-        <h1>登録メールアドレスの変更</h1>
-          <GKTextBox 
+  <div :class="$style.container">
+    <div :class="$style.contents">
+      <GKSelectBox 
+        v-model="selectedMethod" 
+        :options="[
+          { label: '登録メールアドレスの変更', value: 'email' },
+          { label: 'パスワードの変更', value: 'password' },
+          { label: 'アカウントの削除', value: 'delete' },
+          { label: '匿名アカウントの削除', value: 'deleteAnonymous' },
+          { label: 'ログイン状態の確認', value: 'login' },
+          { label: 'メールアドレスの認証状態の確認', value: 'status' }
+        ]"
+        name="login-method"
+        :placeholder="'選択してください'"
+      />
+      <div v-if="selectedMethod === 'email'" :class="$style.item">
+        <GKTextBox 
             v-model="email"
             name="email"
             placeholder="新しいメールアドレス"
@@ -139,21 +152,16 @@ const EmailVerification = async () => {
           />
           <GKBasicButton @click="changeEmail">変更する</GKBasicButton>
       </div>
-      <!-- パスワードの変更 -->
-      <div :class="$style.contents">
-        <h1>パスワードの変更</h1>
-        パスワードリセットメールを送信します
-          <GKTextBox 
+      <div v-if="selectedMethod === 'password'" :class="$style.item">
+        <GKTextBox 
             v-model="email"
             name="email"
             placeholder="登録メールアドレス"
           />
           <GKBasicButton @click="changePassword">変更する</GKBasicButton>
       </div>
-      <!-- アカウントの削除 -->
-      <div :class="$style.contents">
-        <h1>アカウントの削除</h1>
-          <GKTextBox 
+      <div v-if="selectedMethod === 'delete'" :class="$style.item">
+        <GKTextBox 
             v-model="email"
             name="email"
             placeholder="登録メールアドレス"
@@ -165,21 +173,11 @@ const EmailVerification = async () => {
           />
           <GKBasicButton @click="deleteUser">アカウントを削除する</GKBasicButton>
       </div>
-      <!-- 匿名アカウントの削除 -->
-      <div :class="$style.contents">
-        <h1>匿名アカウントの削除</h1>
-          <GKBasicButton @click="deleteAnonymousUser">アカウントを削除する</GKBasicButton>
+      <div v-if="selectedMethod === 'deleteAnonymous'" :class="$style.item">
+        <GKBasicButton @click="deleteAnonymousUser">アカウントを削除する</GKBasicButton>
       </div>
-    </div>
-    <div :class="$style.container">
-      <GKBasicButton @click="signOut">ログアウト</GKBasicButton>
-      <NuxtLink to="/">
-        TOPに戻る
-      </NuxtLink>
-      <!-- ログイン状態の確認 -->
-      <div :class="$style.contents">
-        <h1>ログイン状態の確認</h1>
-          <GKBasicButton @click="loginStatus">確認する</GKBasicButton>
+      <div v-if="selectedMethod === 'login'" :class="$style.item">
+        <GKBasicButton @click="loginStatus">確認する</GKBasicButton>
           <div v-if="userStatus">
             ログイン中です
           </div>
@@ -187,10 +185,8 @@ const EmailVerification = async () => {
             ログアウト中です
           </div>
       </div>
-      <!-- メールアドレスの認証状態の確認 -->
-      <div :class="$style.contents">
-        <h1>メールアドレスの認証状態の確認</h1>
-          <GKBasicButton @click="EmailVerification">確認する</GKBasicButton>
+      <div v-if="selectedMethod === 'status'" :class="$style.item">
+        <GKBasicButton @click="EmailVerification">確認する</GKBasicButton>
           <div v-if="emailStatus">
             認証済みです
           </div>
@@ -199,33 +195,48 @@ const EmailVerification = async () => {
           </div>
       </div>
     </div>
-    <OperationArea>
-    </OperationArea>
+    <NuxtLink to="/operation-area">
+      fire-store-manager操作ページ ▶︎
+    </NuxtLink>
+    <NuxtLink to="/">
+      TOPに戻る
+    </NuxtLink>
   </div>
 </template>
 
 <style lang="scss" module>
 .container {
+  inline-size    : 100%;
+  min-block-size : 100vh;
   display        : flex;
-  /* flex-direction : column; */
-  justify-content: space-around;
+  flex-direction : column;
+  justify-content: center;
   align-items    : center;
   gap            : var(--sp-large);
   padding        : var(--sp-large);
 }
 
 .contents {
-  display        : flex;
-  flex-direction : column;
-  justify-content: center;
-  align-items    : center;
-  gap            : var(--sp-medium);
-  padding        : var(--sp-medium);
+  min-block-size  : 420px;
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
+  padding         : var(--sp-larger);
   background-color: var(--light-yellow);
 
   h1 {
-    font-size: var(--fs-large);
+    font-size       : var(--fs-large);
     margin-block-end: var(--sp-medium)
   }
+}
+
+.item {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
 }
 </style>

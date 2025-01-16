@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { 
   GKTextBox,
-  GKBasicButton
+  GKBasicButton,
+  GKSelectBox
 } from '@geckou/vue-ui-components'
 import { FireBaseAuthManager } from 'gk-firebase-manager'
 
 const password = ref('')
 const email = ref('')
 const fireBaseAuthManager = await FireBaseAuthManager.getInstance()
+const selectedMethod = ref('google')
 
 const AnonymousSignIn = async () => {
   try {
@@ -68,71 +70,93 @@ const resendEmail = async () => {
 
 <template>
   <div :class="$style.container">
-    <!-- Googleログインとメールアドレスログイン -->
     <div :class="$style.contents">
-      <h1>Googleアカウントでログイン</h1>
-      <GKBasicButton @click="GoogleSignIn">ログインする</GKBasicButton>
+      <GKSelectBox 
+        v-model="selectedMethod" 
+        :options="[
+          { label: 'Googleアカウントでログイン', value: 'google' },
+          { label: 'メールアドレスでログイン', value: 'email' },
+          { label: '匿名ログイン', value: 'anonymous' },
+          { label: '認証メールの再送信', value: 'resend' }
+        ]"
+        name="login-method"
+        :placeholder="'選択してください'"
+      />
+      <!-- 各ログイン方法のフォーム -->
+      <div v-if="selectedMethod === 'google'" :class="$style.item">
+        <GKBasicButton @click="GoogleSignIn">ログインする</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'email'" :class="$style.item">
+        <GKTextBox 
+          v-model="email"
+          name="email"
+          placeholder="メールアドレス"
+        />
+        <GKTextBox 
+          v-model="password"
+          name="password"
+          placeholder="パスワード"
+        />
+        <GKBasicButton @click="EmailSignIn">ログインする</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'resend'" :class="$style.item">
+        <GKTextBox 
+          v-model="email"
+          name="email"
+          placeholder="メールアドレス"
+        />
+        <GKTextBox 
+          v-model="password"
+          name="password"
+          placeholder="パスワード"
+        />
+        <GKBasicButton @click="resendEmail">認証メールを再送信する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'anonymous'" :class="$style.item">
+        <GKBasicButton @click="AnonymousSignIn">ログインする</GKBasicButton>
+      </div>   
       or
-      <h1>メールアドレスログイン</h1>
-      <GKTextBox 
-        v-model="email"
-        name="email"
-        placeholder="メールアドレス"
-      />
-      <GKTextBox 
-        v-model="password"
-        name="password"
-        placeholder="パスワード"
-      />
-      <GKBasicButton @click="EmailSignIn">ログインする</GKBasicButton>
+      <NuxtLink to="/signup">
+        新規登録はこちら
+      </NuxtLink>
     </div>
-    <!-- 認証メールの再送信 -->
-    <div :class="$style.contents">
-      <h1>認証メールの再送信</h1>
-      <GKTextBox 
-        v-model="email"
-        name="email"
-        placeholder="メールアドレス"
-      />
-      <GKTextBox 
-        v-model="password"
-        name="password"
-        placeholder="パスワード"
-      />
-      <GKBasicButton @click="resendEmail">認証メールを再送信する</GKBasicButton>
-    </div>
-    <!-- 匿名ログイン -->
-    <div :class="$style.contents">
-      <h1>匿名ログイン</h1>
-      <GKBasicButton @click="AnonymousSignIn">ログインする</GKBasicButton>
-    </div>   
-    <NuxtLink to="/signup">
-      新規登録はこちら
-    </NuxtLink>
   </div>
 </template>
 
+
 <style lang="scss" module>
 .container {
+  inline-size    : 100%;
+  min-block-size : 100vh;
   display        : flex;
-  justify-content: space-around;
+  flex-direction : column;
+  justify-content: center;
   align-items    : center;
   gap            : var(--sp-large);
   padding        : var(--sp-large);
 }
 
 .contents {
-  display        : flex;
-  flex-direction : column;
-  justify-content: center;
-  align-items    : center;
-  gap            : var(--sp-medium);
-  padding        : var(--sp-medium);
+  min-block-size      : 420px;
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
+  padding         : var(--sp-larger);
   background-color: var(--light-yellow);
 
   h1 {
-    font-size: var(--fs-large);
+    font-size       : var(--fs-large);
     margin-block-end: var(--sp-medium)
   }
+}
+
+.item {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-small);
 }
 </style>

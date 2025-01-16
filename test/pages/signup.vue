@@ -39,34 +39,45 @@ const EmailSignUp = async () => {
         placeholder="パスワード"
       />
       <GKBasicButton @click="EmailSignUp">新規登録する</GKBasicButton>
+      <NuxtLink to="/">
+        TOPに戻る
+      </NuxtLink>
     </div>
-    <NuxtLink to="/">
-      TOPに戻る
-    </NuxtLink>
   </div>
 </template>
 
 <style lang="scss" module>
 .container {
+  inline-size    : 100%;
+  min-block-size : 100vh;
   display        : flex;
-  justify-content: space-around;
+  flex-direction : column;
+  justify-content: center;
   align-items    : center;
   gap            : var(--sp-large);
   padding        : var(--sp-large);
 }
 
 .contents {
-  display        : flex;
-  flex-direction : column;
-  justify-content: center;
-  align-items    : center;
-  gap            : var(--sp-medium);
-  padding        : var(--sp-medium);
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
+  padding         : var(--sp-larger);
   background-color: var(--light-yellow);
 
   h1 {
-    font-size: var(--fs-large);
+    font-size       : var(--fs-large);
     margin-block-end: var(--sp-medium)
   }
+}
+
+.item {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-small);
 }
 </style>

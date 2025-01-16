@@ -89,16 +89,16 @@ const emailVerification = async () => {
 }
 
 .contents {
-  display        : flex;
-  flex-direction : column;
-  justify-content: center;
-  align-items    : center;
-  gap            : var(--sp-medium);
-  padding        : var(--sp-medium);
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-medium);
+  padding         : var(--sp-medium);
   background-color: var(--light-yellow);
 
   h1 {
-    font-size: var(--fs-large);
+    font-size       : var(--fs-large);
     margin-block-end: var(--sp-medium)
   }
 }
