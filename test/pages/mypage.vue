@@ -88,7 +88,6 @@ const signOut = async () => {
   }
 }
 
-
 const loginStatus = async () => {
   try {
     const res = await fireBaseAuthManager.verifyLogin()
@@ -225,11 +224,6 @@ const EmailVerification = async () => {
   gap             : var(--sp-large);
   padding         : var(--sp-larger);
   background-color: var(--light-yellow);
-
-  h1 {
-    font-size       : var(--fs-large);
-    margin-block-end: var(--sp-medium)
-  }
 }
 
 .item {
@@ -237,6 +231,6 @@ const EmailVerification = async () => {
   flex-direction  : column;
   justify-content : center;
   align-items     : center;
-  gap             : var(--sp-large);
+  gap             : var(--sp-medium);
 }
 </style>

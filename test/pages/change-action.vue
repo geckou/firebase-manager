@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 import { 
   GKTextBox,
-  GKBasicButton
+  GKBasicButton,
+  GKSelectBox 
 } from '@geckou/vue-ui-components'
-import { sendEmailVerification } from 'firebase/auth'
 import { FireBaseAuthManager } from 'gk-firebase-manager'
 
 const oobCode = ref('')
-const mode = ref('')
 const password = ref('')
 const fireBaseAuthManager = await FireBaseAuthManager.getInstance()
+const selectedMethod = ref('password')
 
 const changingPassword = async () => {
   try {
@@ -46,32 +46,39 @@ const emailVerification = async () => {
 
 <template>
   <div :class="$style.container">
-    <!-- 新しいパスワードの設定 -->
     <div :class="$style.contents">
-      <h1>新しいパスワードの設定</h1>
-      <input 
-        v-model="oobCode"
-        name="oobCode"
-        placeholder="oobCode"
-        :class="$style.input"
+      <GKSelectBox 
+        v-model="selectedMethod" 
+        :options="[
+          { label: '新しいパスワードの設定', value: 'password' },
+          { label: 'メールアドレス変更の認証', value: 'email' },
+        ]"
+        name="login-method"
+        :placeholder="'選択してください'"
       />
-      <GKTextBox 
-        v-model="password"
-        name="password"
-        placeholder="パスワード"
-      />
-      <GKBasicButton @click="changingPassword">パスワードを変更する</GKBasicButton>
-    </div>
-    <!-- メールアドレス変更の認証 -->
-    <div :class="$style.contents">
-      <h1>メールアドレス変更の認証</h1>
-      <input 
-        v-model="oobCode"
-        name="oobCode"
-        placeholder="oobCode"
-        :class="$style.input"
-      />
-      <GKBasicButton @click="emailVerification">メールアドレスを認証する</GKBasicButton>
+      <div v-if="selectedMethod === 'password'" :class="$style.item">
+        <GKTextBox 
+          v-model="oobCode"
+          name="oobCode"
+          placeholder="oobCode"
+          :class="$style.input"
+        />
+        <GKTextBox 
+          v-model="password"
+          name="password"
+          placeholder="パスワード"
+        />
+        <GKBasicButton @click="changingPassword">パスワードを変更する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'email'" :class="$style.item">
+        <GKTextBox 
+          v-model="oobCode"
+          name="oobCode"
+          placeholder="oobCode"
+          :class="$style.input"
+        />
+        <GKBasicButton @click="emailVerification">メールアドレスを認証する</GKBasicButton>
+      </div>
     </div>
     <NuxtLink to="/">
       TOPに戻る
@@ -81,32 +88,32 @@ const emailVerification = async () => {
 
 <style lang="scss" module>
 .container {
+  inline-size    : 100%;
+  min-block-size : 100vh;
   display        : flex;
-  justify-content: space-around;
+  flex-direction : column;
+  justify-content: center;
   align-items    : center;
   gap            : var(--sp-large);
   padding        : var(--sp-large);
 }
 
 .contents {
+  min-block-size  : 420px;
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
+  padding         : var(--sp-larger);
+  background-color: var(--light-yellow);
+}
+
+.item {
   display         : flex;
   flex-direction  : column;
   justify-content : center;
   align-items     : center;
   gap             : var(--sp-medium);
-  padding         : var(--sp-medium);
-  background-color: var(--light-yellow);
-
-  h1 {
-    font-size       : var(--fs-large);
-    margin-block-end: var(--sp-medium)
-  }
-}
-
-.input {
-  width        : 100%;
-  padding      : var(--sp-small);
-  border       : 1px solid var(--light-gray);
-  border-radius: var(--radius-small);
 }
 </style>

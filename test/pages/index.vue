@@ -123,7 +123,6 @@ const resendEmail = async () => {
   </div>
 </template>
 
-
 <style lang="scss" module>
 .container {
   inline-size    : 100%;
@@ -145,11 +144,6 @@ const resendEmail = async () => {
   gap             : var(--sp-large);
   padding         : var(--sp-larger);
   background-color: var(--light-yellow);
-
-  h1 {
-    font-size       : var(--fs-large);
-    margin-block-end: var(--sp-medium)
-  }
 }
 
 .item {

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { 
   GKTextBox,
-  GKBasicButton
+  GKBasicButton,
+  GKSelectBox,
 } from '@geckou/vue-ui-components'
 import { FireStoreManager } from 'gk-firebase-manager'
 import type { WhereFilterOp } from 'firebase/firestore'
@@ -10,22 +11,41 @@ const runtimeConfig = useRuntimeConfig()
 const firebaseConfig = runtimeConfig.public.firebaseConfig
 const fireStoreManager = new FireStoreManager({ firebaseConfig, collectionName: 'users' })
 
-const name = ref('')
-const message = ref('')
 const docId = ref('')
 const fieldPath = ref('')
 const opStr: Ref<WhereFilterOp> = ref('==') 
 const value = ref('')
+const selectedMethod = ref('setDoc')
+const selectedOpStr = ref('==')
 
-const updateData = computed(() => ({
-  name: name.value,
-  message: message.value,
-}))
+const inputData = ref({
+  name: {
+    first: '',
+    last: '',
+  },
+  age: 0,
+  university: '',
+  hobbies: '',
+  updatedAt: fireStoreManager.createTimestamp().toDate(),
+})
+
+const updateData = computed(() => {
+  return {
+    name: {
+      first: inputData.value.name.first,
+      last: inputData.value.name.last,
+    },
+    age: inputData.value.age,
+    university: inputData.value.university,
+    hobbies: inputData.value.hobbies.replaceAll(' ', '').split(','),
+    updatedAt: fireStoreManager.createTimestamp().toDate(),
+  }
+})
 
 // ドキュメントを新規作成する(setDoc)
 const create = async () => {
   try {
-    const res = await fireStoreManager.setDoc(docId.value, { ...updateData.value })
+    const res = await fireStoreManager.setDoc(docId.value, updateData.value )
     const { status, data } = res || {}
     if ( status === 'success' ) {
       console.log('メッセージを送信しました。')
@@ -40,7 +60,7 @@ const create = async () => {
 // 指定のドキュメントにデータを更新する(updateDoc)
 const update = async () => {
   try {
-    const res = await fireStoreManager.updateDoc(docId.value, { ...updateData.value })
+    const res = await fireStoreManager.updateDoc(docId.value, updateData.value )
     const { status, data } = res || {}
     if ( status === 'success' ) {
       console.log('メッセージを送信しました。')
@@ -91,16 +111,10 @@ const deleteDatas = async () => {
   }
 }
 
-// タイムスタンプ
-const timestamp = ref()
-const createTimestamp = fireStoreManager.createTimestamp()
-timestamp.value = createTimestamp.toDate()
-
-
 // ドキュメントの作成と参照(createDocRef)
 const createRef = async () => {
   try {
-    const docRef = await fireStoreManager.createDocRef({ ...updateData.value })
+    const docRef = await fireStoreManager.createDocRef(inputData.value)
 
     if (docRef && docRef.id) {
       console.log("メッセージを送信しました。")
@@ -137,105 +151,201 @@ const monitorDoc = () => {
     }
   })
 }
+
+const timestamp = ref<string | null>(null)
+
+const fetchTimestamp = () => {
+  const createTimestamp = fireStoreManager.createTimestamp()
+  timestamp.value = createTimestamp.toDate().toLocaleString() // 日時を取得して設定
+}
+
+const fetchDocData = async () => {
+  try {
+    const res = await fireStoreManager.getCollectionByQuery({
+    queries: [
+      {
+        fieldPath: fieldPath.value,
+        opStr: opStr.value,
+        value: value.value,
+      },
+    ]})
+  
+      if (res && res.data) {
+        console.log('Data fetched:', res.data)
+        const data = res.data[0].data
+        console.log('Data:', data)
+        inputData.value.name.first = data.name.first
+        inputData.value.name.last = data.name.last
+        inputData.value.age = data.age
+        inputData.value.university = data.university
+        inputData.value.hobbies = data.hobbies.join(', ')
+
+      } else {
+        console.error('No data found or data is undefined.')
+      } 
+    } catch (error) {
+      console.error('Error fetching widgets:', error)
+    }
+  }
 </script>
 
 <template>
-  <div>
-    <div :class="$style.container">
-      <div :class="$style.contents">
-        <h1>ドキュメントを新規作成する(setDoc)</h1>
-          <GKTextBox 
-            v-model="docId"
-            name="docId"
-            placeholder="ドキュメントID"
-          />
-          <GKTextBox 
-            v-model="name"
-            name="name"
-            placeholder="お名前"
-          />
-          <GKTextBox 
-            v-model="message"
-            name="message"
-            placeholder="メッセージ"
-          />
-          <GKBasicButton @click="create">送信する</GKBasicButton>
-      </div>
-      <div :class="$style.contents">
-        <h1>指定のドキュメントにデータを更新する(updateDoc)</h1>
-          <GKTextBox 
-            v-model="docId"
-            name="docId"
-            placeholder="ドキュメントID"
-          />
-          <GKTextBox 
-            v-model="name"
-            name="name"
-            placeholder="お名前"
-          />
-          <GKTextBox 
-            v-model="message"
-            name="message"
-            placeholder="メッセージ"
-          />
-          <GKBasicButton @click="update">送信する</GKBasicButton>
-      </div>
-      <div :class="$style.contents">
-        <h1>ドキュメントを削除する(docIdで)(deleteDoc)</h1>
-          <GKTextBox 
-            v-model="docId"
-            name="docId"
-            placeholder="ドキュメントID"
-          />
-          <GKBasicButton @click="deleteData">削除する</GKBasicButton>
-      </div>
-      <div :class="$style.contents">
-        <h1>ドキュメントを削除する(クエリで)(deleteDocs)</h1>
-          <GKTextBox 
-            v-model="fieldPath"
-            name="fieldPath"
-            placeholder="fieldPath"
-          />
-          <GKTextBox 
-            v-model="opStr"
-            name="opStr"
-            placeholder="opStr"
-          />
-          <GKTextBox 
-            v-model="value"
-            name="value"
-            placeholder="value"
-          />
-          <GKBasicButton @click="deleteDatas">削除する</GKBasicButton>
-      </div>
-      <div :class="$style.contents">
-        <h1>タイムスタンプ</h1>
-          {{ timestamp }}
-      </div>
-    </div>
-    <div :class="$style.container">
-      <div :class="$style.contents">
-        <h1>ドキュメントの作成と参照(id自動生成)(createDocRef)</h1>
+  <div :class="$style.container">
+    <pre>{{ inputData }}</pre>
+    <div :class="$style.contents">
+      <GKSelectBox 
+        v-model="selectedMethod" 
+        :options="[
+          { label: 'ドキュメントを新規作成する(setDoc)', value: 'setDoc' },
+          { label: 'ドキュメントIDで指定してデータを更新する(updateDoc)', value: 'updateDoc' },
+          { label: 'ドキュメントを削除する(docIdで指定)(deleteDoc)', value: 'deleteDoc' },
+          { label: '複数のドキュメントを削除する(クエリで指定)(deleteDocs)', value: 'deleteDocs' },
+          { label: '(id自動生成)でドキュメントを作成(createDocRef)', value: 'createDocRef' },
+          { label: '新しいドキュメントIDを取得する(getSettingDoc)', value: 'getSettingDoc' },
+          { label: 'スナップショットでドキュメントを監視する(onSnapshot)', value: 'onSnapshot' },
+          { label: 'タイムスタンプ', value: 'timestamp' },
+          { label: 'クエリ条件に一致するドキュメントを取得(getCollectionByQuery)', value: 'getCollectionByQuery' },
+        ]"
+        name="login-method"
+        :placeholder="'選択してください'"
+      />
+      <div v-if="selectedMethod === 'setDoc'" :class="$style.item">
         <GKTextBox 
-        v-model="name"
-        name="name"
-        placeholder="お名前"
+          v-model="docId"
+          name="docId"
+          placeholder="ドキュメントID"
         />
         <GKTextBox 
-        v-model="message"
-        name="message"
-        placeholder="メッセージ"
+          v-model="inputData.name.first"
+          name="name"
+          placeholder="苗字"
+        />
+        <GKTextBox 
+          v-model="inputData.name.last"
+          name="name"
+          placeholder="名前"
+        />
+        <GKTextBox
+          v-model="inputData.age"
+          name="age"
+          placeholder="年齢"
+        />
+        <GKTextBox 
+          v-model="inputData.university"
+          name="university"
+          placeholder="出身大学"
+        />
+        <GKTextBox 
+          v-model="inputData.hobbies"
+          name="hobbies"
+          placeholder="趣味(カンマ区切り)"
+        />
+        <GKBasicButton @click="create">送信する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'updateDoc'" :class="$style.item">
+        <GKTextBox 
+          v-model="docId"
+          name="docId"
+          placeholder="ドキュメントID"
+        />
+        <GKTextBox 
+          v-model="inputData.name.first"
+          name="name"
+          placeholder="苗字"
+        />
+        <GKTextBox 
+          v-model="inputData.name.last"
+          name="name"
+          placeholder="名前"
+        />
+        <GKTextBox
+          v-model="inputData.age"
+          name="age"
+          placeholder="年齢"
+        />
+        <GKTextBox 
+          v-model="inputData.university"
+          name="university"
+          placeholder="出身大学"
+        />
+        <GKTextBox 
+          v-model="inputData.hobbies"
+          name="hobbies"
+          placeholder="趣味(カンマ区切り)"
+        />
+        <GKBasicButton @click="update">送信する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'deleteDoc'" :class="$style.item">
+        <GKTextBox 
+          v-model="docId"
+          name="docId"
+          placeholder="ドキュメントID"
+        />
+        <GKBasicButton @click="deleteData">削除する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'deleteDocs'" :class="$style.item">
+        <GKTextBox 
+          v-model="fieldPath"
+          name="fieldPath"
+          placeholder="fieldPath"
+        />
+        <GKSelectBox 
+          v-model="selectedOpStr" 
+          :options="[
+            { label: '==', value: '==' },
+            { label: '!=', value: '!=' },
+            { label: '>', value: '>' },
+            { label: '>=', value: '>=' },
+            { label: '<', value: '<' },
+            { label: '<=', value: '<=' },
+            { label: 'in', value: 'in' },
+            { label: 'not-in', value: 'not-in' },
+            { label: 'array-contains', value: 'array-contains' },
+            { label: 'array-contains-any', value: 'array-contains-any' },
+          ]"
+          name="login-method"
+          :placeholder="'選択してください'"
+        />
+        <GKTextBox 
+          v-model="value"
+          name="value"
+          placeholder="value"
+        />
+        <GKBasicButton @click="deleteDatas">削除する</GKBasicButton>
+      </div>
+      <div v-if="selectedMethod === 'createDocRef'" :class="$style.item">
+        <GKTextBox 
+          v-model="inputData.name.first"
+          name="name"
+          placeholder="苗字"
+        />
+        <GKTextBox 
+          v-model="inputData.name.last"
+          name="name"
+          placeholder="名前"
+        />
+        <GKTextBox
+          v-model="inputData.age"
+          name="age"
+          placeholder="年齢"
+        />
+        <GKTextBox 
+          v-model="inputData.university"
+          name="university"
+          placeholder="出身大学"
+        />
+        <GKTextBox 
+          v-model="inputData.hobbies"
+          name="hobbies"
+          placeholder="趣味(カンマ区切り)"
         />
         <GKBasicButton @click="createRef">送信する</GKBasicButton>
       </div>
-      <div :class="$style.contents">
-        <h1>新しいドキュメントIDを取得する(getSettingDoc)</h1>
+      <div v-if="selectedMethod === 'getSettingDoc'" :class="$style.item">
         <GKBasicButton @click="getSettingDocId">取得する</GKBasicButton>
         {{ 'id: ' + docId }}
       </div>
-      <!-- ドキュメントのスナップショットを監視する -->
-      <div :class="$style.contents">
-        <h1>スナップショットでドキュメントを監視する(onSnapshot)</h1>
+      <div v-if="selectedMethod === 'onSnapshot'" :class="$style.item">
         <GKTextBox 
           v-model="docId"
           name="docId"
@@ -251,45 +361,75 @@ const monitorDoc = () => {
           <p>ドキュメントが存在しません。</p>
         </div>
       </div>
+      <div v-if="selectedMethod === 'timestamp'" :class="$style.item">
+        <GKBasicButton @click="fetchTimestamp()">タイムスタンプを作成する</GKBasicButton>
+        {{ '日時: ' + timestamp }}
+      </div>
+      <div v-if="selectedMethod === 'getCollectionByQuery'" :class="$style.item">
+        <GKTextBox 
+          v-model="fieldPath"
+          name="fieldPath"
+          placeholder="fieldPath"
+        />
+        <GKSelectBox 
+          v-model="selectedOpStr" 
+          :options="[
+            { label: '==', value: '==' },
+            { label: '!=', value: '!=' },
+            { label: '>', value: '>' },
+            { label: '>=', value: '>=' },
+            { label: '<', value: '<' },
+            { label: '<=', value: '<=' },
+            { label: 'in', value: 'in' },
+            { label: 'not-in', value: 'not-in' },
+            { label: 'array-contains', value: 'array-contains' },
+            { label: 'array-contains-any', value: 'array-contains-any' },
+          ]"
+          name="login-method"
+          :placeholder="'選択してください'"
+        />
+        <GKTextBox 
+          v-model="value"
+          name="value"
+          placeholder="value"
+        />
+        <GKBasicButton @click="fetchDocData">取得する</GKBasicButton>
+      </div>
     </div>
-    <div :class="$style.button">
-      <NuxtLink to="/mypage">
-        ◀︎ mypage操作ページ
-      </NuxtLink>
-    </div>
+    <NuxtLink to="/mypage">
+      ◀︎ mypage
+    </NuxtLink>
   </div>
 </template>
 
 <style lang="scss" module>
 .container {
-  display         : flex;
-  justify-content : space-around;
-  align-items     : center;
-  gap             : var(--sp-large);
-  padding         : var(--sp-large);
-  background-color: var(--light-gray);
+  inline-size    : 100%;
+  min-block-size : 100vh;
+  display        : flex;
+  flex-direction : column;
+  justify-content: center;
+  align-items    : center;
+  gap            : var(--sp-large);
+  padding        : var(--sp-large);
 }
 
 .contents {
+  min-block-size  : 420px;
+  display         : flex;
+  flex-direction  : column;
+  justify-content : center;
+  align-items     : center;
+  gap             : var(--sp-large);
+  padding         : var(--sp-larger);
+  background-color: var(--light-yellow);
+}
+
+.item {
   display         : flex;
   flex-direction  : column;
   justify-content : center;
   align-items     : center;
   gap             : var(--sp-medium);
-  padding         : var(--sp-medium);
-  background-color: var(--light-yellow);
-
-  h1 {
-    font-size       : var(--fs-large);
-    margin-block-end: var(--sp-medium)
-  }
-}
-
-.button {
-  display        : flex;
-  justify-content: center;
-  align-items    : center;
-  font-size      : var(--fs-larger);
-  padding-block  : calc(var(--sp-larger) * 2);
 }
 </style>
