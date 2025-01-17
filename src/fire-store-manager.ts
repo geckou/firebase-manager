@@ -74,9 +74,8 @@ class FireStoreManager {
     return collection(this.db, collectionName, ...pathSegments)
   }
 
-  // ドキュメント参照を取得する
-  public getDoc(collectionName: string, docName: string = '') {
-    return doc(this.db, collectionName, docName)
+  private getDoc(collectionName: string, docId: string = '') {
+    return doc(this.db, collectionName, docId)
   }
 
     // 指定されたコレクションの設定ドキュメントを取得する
