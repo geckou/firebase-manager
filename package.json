@@ -1,6 +1,6 @@
 {
   "name": "@geckou/gk-firebase-manager",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Firebase manager package",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,6 +26,7 @@
     "typescript": "^5.7.2"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
   }
 }
