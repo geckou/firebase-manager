@@ -152,6 +152,7 @@ const monitorDoc = () => {
   })
 }
 
+  // 現在の日時を Firebase Timestamp 形式で作成
 const timestamp = ref<string | null>(null)
 
 const fetchTimestamp = () => {
@@ -159,7 +160,8 @@ const fetchTimestamp = () => {
   timestamp.value = createTimestamp.toDate().toLocaleString() // 日時を取得して設定
 }
 
-const fetchDocData = async () => {
+  // クエリ条件に一致するドキュメントを取得(getCollectionByQuery)
+const fetchDocData = async() => {
   try {
     const res = await fireStoreManager.getCollectionByQuery({
     queries: [
@@ -187,6 +189,50 @@ const fetchDocData = async () => {
       console.error('Error fetching widgets:', error)
     }
   }
+
+// 同時送信でも安全にデータを更新する(runTransaction)
+const updateDataTransaction_1 = async(updateData: any) => {
+  try {
+    console.log('updateDataTransaction_1')
+    const res = await fireStoreManager.upsertDocTransaction(docId.value, updateData)
+    const { status, data } = res || {}
+    if ( status === 'success' ) {
+      console.log('メッセージを送信しました。')
+    } else {
+      console.error(data)
+    }
+  } catch (error: any) {
+    console.error(error)
+  }
+}
+
+const updateDataTransaction_2 = async(updateData: any) => {
+  try {
+    console.log('updateDataTransaction_1')
+    const res = await fireStoreManager.upsertDocTransaction(docId.value, updateData)
+    const { status, data } = res || {}
+    if ( status === 'success' ) {
+      console.log('メッセージを送信しました。')
+    } else {
+      console.error(data)
+    }
+  } catch (error: any) {
+    console.error(error)
+  }
+}
+
+const handleUpdate = async () => {
+  const {
+    university,
+    hobbies,
+    age,
+  } = inputData.value
+  await updateDataTransaction_1({ university, hobbies })
+
+  setTimeout(async () => {
+    await updateDataTransaction_2({ age, hobbies: `${inputData.value.hobbies}_2` })
+  }, 500)
+}
 </script>
 
 <template>
@@ -205,6 +251,7 @@ const fetchDocData = async () => {
           { label: 'スナップショットでドキュメントを監視する(onSnapshot)', value: 'onSnapshot' },
           { label: 'タイムスタンプ', value: 'timestamp' },
           { label: 'クエリ条件に一致するドキュメントを取得(getCollectionByQuery)', value: 'getCollectionByQuery' },
+          { label: '同時送信でも安全にデータを更新する(runTransaction)', value: 'runTransaction' },
         ]"
         name="login-method"
         :placeholder="'選択してください'"
@@ -395,7 +442,83 @@ const fetchDocData = async () => {
         />
         <GKBasicButton @click="fetchDocData">取得する</GKBasicButton>
       </div>
+
+
+      <div v-if="selectedMethod === 'runTransaction'" :class="$style.item">
+        <div :class=$style.transaction>
+          <div>
+            <GKTextBox 
+              v-model="docId"
+              name="docId"
+              placeholder="ドキュメントID"
+            />
+            <GKTextBox 
+              v-model="inputData.name.first"
+              name="name"
+              placeholder="苗字"
+            />
+            <GKTextBox 
+              v-model="inputData.name.last"
+              name="name"
+              placeholder="名前"
+            />
+            <GKTextBox
+              v-model="inputData.age"
+              name="age"
+              placeholder="年齢"
+            />
+            <GKTextBox 
+              v-model="inputData.university"
+              name="university"
+              placeholder="出身大学"
+            />
+            <GKTextBox 
+              v-model="inputData.hobbies"
+              name="hobbies"
+              placeholder="趣味(カンマ区切り)"
+            />
+          </div>
+          <div>
+            <GKTextBox 
+              v-model="docId"
+              name="docId"
+              placeholder="ドキュメントID"
+            />
+            <GKTextBox 
+              v-model="inputData.name.first"
+              name="name"
+              placeholder="苗字"
+            />
+            <GKTextBox 
+              v-model="inputData.name.last"
+              name="name"
+              placeholder="名前"
+            />
+            <GKTextBox
+              v-model="inputData.age"
+              name="age"
+              placeholder="年齢"
+            />
+            <GKTextBox 
+              v-model="inputData.university"
+              name="university"
+              placeholder="出身大学"
+            />
+            <GKTextBox 
+              v-model="inputData.hobbies"
+              name="hobbies"
+              placeholder="趣味(カンマ区切り)"
+            />
+          </div>
+        </div>
+        <GKBasicButton @click="handleUpdate">
+          送信する
+        </GKBasicButton>
+      </div>
     </div>
+
+
+
     <NuxtLink to="/mypage">
       ◀︎ mypage
     </NuxtLink>
@@ -431,5 +554,17 @@ const fetchDocData = async () => {
   justify-content : center;
   align-items     : center;
   gap             : var(--sp-medium);
+}
+
+.transaction {
+  display       : flex;
+  flex-direction: row;
+  gap           : var(--sp-medium);
+
+  > div {
+    display       : flex;
+    flex-direction: column;
+    gap           : var(--sp-small);
+  }
 }
 </style>

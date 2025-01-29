@@ -4,7 +4,6 @@ import type {
   Firestore,
   DocumentData,
   DocumentSnapshot,
-  CollectionReference,
   DocumentReference,
   WhereFilterOp,
   Query,
@@ -19,6 +18,7 @@ import {
   doc,
   writeBatch,
   addDoc,
+  runTransaction,
   onSnapshot as useSnapshot,
   Timestamp,
   orderBy as firebaseOrderBy,
@@ -257,6 +257,40 @@ class FireStoreManager {
   // 現在の日時を Firebase Timestamp 形式で作成
   public createTimestamp() {
     return Timestamp.fromDate(new Date())
+  }
+
+// トランザクションでデータを更新し、存在しなければ作成する関数
+  public async upsertDocTransaction(key: string, updateData: any): Promise<Result<string>> {
+    const executeTransaction = async (attempt = 1): Promise<Result<string>> => {
+      try {
+        const result = await runTransaction(this.db, async (transaction) => {
+          const docRef = this.getDoc(this.collectionName, key)
+          const doc = await transaction.get(docRef)
+
+          if (!doc.exists()) {
+            transaction.set(docRef, updateData, { merge: true })
+          } else {
+            transaction.update(docRef, updateData)
+          }
+
+          return { ...doc.data(), ...updateData } // 更新後のデータを返す
+        })
+
+        return { status: "success", data: JSON.stringify(result) }
+      } catch (error: any) {
+        if (error.code === 409 && attempt < 5) {
+          console.warn(`Transaction conflict detected, retrying... (${attempt}/5)`)
+          return new Promise((resolve) =>
+            setTimeout(() => resolve(executeTransaction(attempt + 1)), 500)
+          )
+        }
+
+        console.error("Transaction failed: ", error)
+        return { status: "error", data: `Error: ${error}` }
+      }
+    }
+
+    return executeTransaction()
   }
 }
 
