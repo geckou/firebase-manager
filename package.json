@@ -1,6 +1,6 @@
 {
   "name": "@geckou/firebase-manager",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Firebase manager package",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "publish": "npm publish"
   },
   "keywords": [],
   "author": "",

@@ -265,27 +265,20 @@ class FireStoreManager {
         const result = await runTransaction(this.db, async (transaction) => {
           const docRef = this.getDoc(this.collectionName, key)
           const doc = await transaction.get(docRef)
-
-          if (!doc.exists()) {
-            transaction.set(docRef, updateData, { merge: true })
-          } else {
-            transaction.update(docRef, updateData)
-          }
-
-          return { ...doc.data(), ...updateData } // 更新後のデータを返す
+          if (!doc.exists()) transaction.set(docRef, updateData, { merge: true })
+          else transaction.update(docRef, updateData)
+          return { ...doc.data(), ...updateData } //更新後のデータを返す
         })
 
-        return { status: "success", data: JSON.stringify(result) }
+        return { status: 'success', data: JSON.stringify(result) }
       } catch (error: any) {
         if (error.code === 409 && attempt < 5) {
           console.warn(`Transaction conflict detected, retrying... (${attempt}/5)`)
-          return new Promise((resolve) =>
-            setTimeout(() => resolve(executeTransaction(attempt + 1)), 500)
-          )
+          return new Promise((resolve) => setTimeout(() => resolve(executeTransaction(attempt + 1)), 500))
         }
 
-        console.error("Transaction failed: ", error)
-        return { status: "error", data: `Error: ${error}` }
+        console.error('Transaction failed: ', error)
+        return { status: 'error', data: `Error: ${error}` }
       }
     }
 
