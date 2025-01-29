@@ -10,7 +10,16 @@ export default defineNuxtConfig({
         storageBucket    : process.env.FIREBASE_STORAGE_BUCKET,
         messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
         appId            : process.env.FIREBASE_APP_ID,
+        measurementId    : process.env.FIREBASE_MEASUREMENT_ID,
       },
+    },
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'robots', content: 'noindex, nofollow' },
+      ],
     },
   },
 
@@ -25,6 +34,11 @@ export default defineNuxtConfig({
         scss: {
           api: 'modern-compiler',
         },
+      },
+    },
+    build: {
+      rollupOptions: {
+        external: ['gk-firebase-manager'], // gk-firebase-managerを外部モジュールとして指定
       },
     },
   },

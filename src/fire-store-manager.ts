@@ -1,11 +1,12 @@
 import type { Result } from '~/types'
 import type { FirebaseApp } from 'firebase/app'
 import type {
-  WhereFilterOp,
   Firestore,
   DocumentData,
   DocumentSnapshot,
-  CollectionReference,
+  DocumentReference,
+  WhereFilterOp,
+  Query,
 } from 'firebase/firestore'
 import { initializeApp } from 'firebase/app'
 import {
@@ -17,8 +18,11 @@ import {
   doc,
   writeBatch,
   addDoc,
+  runTransaction,
   onSnapshot as useSnapshot,
   Timestamp,
+  orderBy as firebaseOrderBy,
+  limit as firebaseLimit,
 } from 'firebase/firestore'
 
 type OnSnapshotFunction = { (snapshot: DocumentSnapshot): void }
@@ -34,10 +38,18 @@ type FirebaseConfig = Record<
 >
 
 type QueryOptions = {
-  fieldPath: string
-  opStr: WhereFilterOp
-  value: any
+  queries?: Array<{
+    fieldPath: string
+    opStr: WhereFilterOp
+    value: any
+  }>
+  orderBy?: Array<{
+    fieldPath: string
+    directionStr?: 'asc' | 'desc'
+  }>
+  limit?: number
 }
+
 class FireStoreManager {
   private collectionName: string
   private firebaseConfig: FirebaseConfig
@@ -61,14 +73,16 @@ class FireStoreManager {
     return collection(this.db, collectionName, ...pathSegments)
   }
 
-  public getDoc(collectionName: string, docName: string = '') {
-    return doc(this.db, collectionName, docName)
+  private getDoc(collectionName: string, docId: string = '') {
+    return doc(this.db, collectionName, docId)
   }
 
+    // 指定されたコレクションの設定ドキュメントを取得する
   public getSettingDoc() {
     return doc(this.getCollection(this.collectionName))
   }
 
+    // ドキュメントを Firestore に書き込む
   public async setDoc(docId: string, docData: any): Promise<Result<string>> {
     const batch = writeBatch(this.db)
     const docRef = this.getDoc(this.collectionName, docId)
@@ -89,6 +103,7 @@ class FireStoreManager {
     }
   }
 
+     // 指定されたドキュメントを削除する
   public async deleteDoc(docId: string): Promise<Result<string>> {
     const batch = writeBatch(this.db) // ローカルバッチを作成
     const delDocRef = this.getDoc(this.collectionName, docId)
@@ -110,40 +125,34 @@ class FireStoreManager {
     }
   }
 
+    // クエリ条件に一致するすべてのドキュメントを削除
   public async deleteDocs(
-    key: string,
-    { fieldPath, opStr, value }: QueryOptions,
-  ): Promise<Result<any[] | string>> {
-    const result = await this.getCollectionByQuery({
-      fieldPath,
-      opStr,
-      value,
-    })
+    options: QueryOptions,
+  ): Promise<Result<string>> {
+    // クエリ実行して削除対象を取得
+    const result = await this.getCollectionByQuery(options)
   
-    if (result.status === 'error') return { status: result.status, data: result.data }
+    if (result.status === 'error' || !result.data) {
+      return { status: 'error', data: 'Failed to retrieve documents.' }
+    }
   
     const batch = writeBatch(this.db)
-    const deleteDocRefs = (result.data as any[]).map((docData: any) =>
-      this.getDoc(this.collectionName, docData[key]),
-    )
-  
-    deleteDocRefs.forEach((el: any) => batch.delete(el))
   
     try {
+      result.data.forEach(({ ref }) => {
+        batch.delete(ref)
+      })
+  
       await batch.commit()
-      return {
-        status: 'success',
-        data  : 'Documents successfully deleted!',
-      }
+  
+      return { status: 'success', data: 'Documents successfully deleted!' }
     } catch (error) {
       console.error('Error deleting documents: ', error)
-      return {
-        status: 'error',
-        data  : 'Error deleting documents: ' + error,
-      }
+      return { status: 'error', data: `Error deleting documents: ${error}` }
     }
   }
 
+  // ドキュメントを更新する
   public async updateDoc(key: string, updateData: any): Promise<Result<string>> {
     const batch = writeBatch(this.db)
     const docRef = this.getDoc(this.collectionName, key)
@@ -165,14 +174,14 @@ class FireStoreManager {
     }
   }
 
-  public createDocRef<T>(
-    collection: CollectionReference,
-    docData: T,
-  ): Promise<DocumentData> {
-    return addDoc(collection, docData as any)
+    // ドキュメントを作成し、参照を返す
+  public createDocRef<T>(docData: T): Promise<DocumentData> {
+    return addDoc(this.getCollection(this.collectionName), docData as any)
   }
 
+    // ドキュメントのスナップショットを監視する
   public onSnapshot(docId: string, snapshotFunction: OnSnapshotFunction): () => void {
+    console.log('Subscribed to snapshot', docId, this.collectionName)
     const docRef = this.getDoc(this.collectionName, docId)
     
     const unsubscribe = useSnapshot(
@@ -190,41 +199,97 @@ class FireStoreManager {
     return unsubscribe
   }
 
-  public createCustomCollection(
-    db: Firestore,
-    pathName: string,
-    pathSegments: string[] = [],
-  ) {
-    return collection(db, pathName, ...pathSegments)
-  }
-
+  // クエリ条件に一致するドキュメントを取得
   public async getCollectionByQuery({
-    fieldPath,
-    opStr,
-    value,
-  }: QueryOptions): Promise<Result<any[]>> {
+    queries = [],
+    orderBy = [],
+    limit,
+  }: QueryOptions): Promise<Result<Array<{ data: any; ref: DocumentReference }>>> {
     const collectionName = this.collectionName
-    
-    const q = query(
-      this.getCollection(collectionName),
-      where(fieldPath, opStr, value),
-    )
-
+  
+    // 初期クエリを作成
+    const baseQuery: Query = this.getCollection(collectionName)
+  
+    // クエリ条件を順に適用
+    const queryWithConditions = queries.length > 0
+      ? ((): Query => {
+          let currentQuery = baseQuery
+          queries.forEach(({ fieldPath, opStr, value }) => {
+            currentQuery = query(currentQuery, where(fieldPath, opStr, value))
+          })
+          return currentQuery
+        })()
+      : baseQuery
+  
+    // 並び順を順に適用
+    const queryWithOrderBy = orderBy.length > 0
+      ? ((): Query => {
+          let currentQuery = queryWithConditions
+          orderBy.forEach(({ fieldPath, directionStr }) => {
+            currentQuery = query(currentQuery, firebaseOrderBy(fieldPath, directionStr))
+          })
+          return currentQuery
+        })()
+      : queryWithConditions
+  
+    // limit の適用
+    const finalQuery = limit
+      ? query(queryWithOrderBy, firebaseLimit(limit))
+      : queryWithOrderBy
+  
     try {
-      const querySnapshot = await getDocs(q)
-
+      const querySnapshot = await getDocs(finalQuery)
+  
       return {
         status: 'success',
-        data  : querySnapshot.docs.map(doc => doc.data()),
+        data  : querySnapshot.docs.map(doc => ({
+          data: doc.data(),
+          ref : doc.ref,
+        })),
       }
     } catch (error) {
       console.error('Error getting documents by query: ', error)
       throw new Error('Error getting documents by query: ' + error)
     }
   }
-
+  
+  // 現在の日時を Firebase Timestamp 形式で作成
   public createTimestamp() {
     return Timestamp.fromDate(new Date())
+  }
+
+// トランザクションでデータを更新し、存在しなければ作成する関数
+  public async upsertDocTransaction(key: string, updateData: any): Promise<Result<string>> {
+    const executeTransaction = async (attempt = 1): Promise<Result<string>> => {
+      try {
+        const result = await runTransaction(this.db, async (transaction) => {
+          const docRef = this.getDoc(this.collectionName, key)
+          const doc = await transaction.get(docRef)
+
+          if (!doc.exists()) {
+            transaction.set(docRef, updateData, { merge: true })
+          } else {
+            transaction.update(docRef, updateData)
+          }
+
+          return { ...doc.data(), ...updateData } // 更新後のデータを返す
+        })
+
+        return { status: "success", data: JSON.stringify(result) }
+      } catch (error: any) {
+        if (error.code === 409 && attempt < 5) {
+          console.warn(`Transaction conflict detected, retrying... (${attempt}/5)`)
+          return new Promise((resolve) =>
+            setTimeout(() => resolve(executeTransaction(attempt + 1)), 500)
+          )
+        }
+
+        console.error("Transaction failed: ", error)
+        return { status: "error", data: `Error: ${error}` }
+      }
+    }
+
+    return executeTransaction()
   }
 }
 
