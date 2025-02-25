@@ -258,30 +258,65 @@ class FireStoreManager {
     return Timestamp.fromDate(new Date())
   }
 
-// トランザクションでデータを更新し、存在しなければ作成する関数
-  public async upsertDocTransaction(key: string, updateData: any): Promise<Result<string>> {
-    const executeTransaction = async (attempt = 1): Promise<Result<string>> => {
-      try {
-        const result = await runTransaction(this.db, async (transaction) => {
-          const docRef = this.getDoc(this.collectionName, key)
-          const doc = await transaction.get(docRef)
-          if (!doc.exists()) transaction.set(docRef, updateData, { merge: true })
-          else transaction.update(docRef, updateData)
-          return { ...doc.data(), ...updateData } //更新後のデータを返す
-        })
 
+  // トランザクションを使用してドキュメントを更新または作成する
+  public async upsertDocTransaction(key: string, updateData: any): Promise<Result<string>> {
+    const MAX_RETRIES = 5 // 最大リトライ回数
+    const BASE_DELAY = 100 // リトライ間隔の基本値
+    const calculateRetryDelay = (attempt: number): number => Math.pow(2, attempt) * BASE_DELAY + Math.random() * BASE_DELAY // リトライ間隔を計算
+
+    // オブジェクトの深い等価性を確認
+    const deepEqual = (a: any, b: any): boolean => {
+      if (a === b) return true
+    
+      if (typeof a !== 'object' || a === null ||
+          typeof b !== 'object' || b === null) {
+        return false
+      }
+    
+      const keysA = Object.keys(a)
+      const keysB = Object.keys(b)
+    
+      if (keysA.length !== keysB.length) return false
+    
+      for (const key of keysA) {
+        if (!keysB.includes(key)) return false
+        if (!deepEqual(a[key], b[key])) return false
+      }
+    
+      return true
+    }
+
+    // トランザクションのロジック
+    const handleTransactionLogic = async(transaction: any, docRef: DocumentReference): Promise<any> => {
+      const doc = await transaction.get(docRef)
+      const currentData = doc.exists() ? doc.data() : null
+      if (deepEqual(currentData, updateData)) return { status: 'success', data: JSON.stringify(currentData) }
+      transaction.set(docRef, updateData, { merge: true })
+      return { ...currentData, ...updateData }
+    }
+
+    // トランザクションを実行
+    const executeTransaction = async(attempt = 1): Promise<Result<string>> => {
+      try {
+        const docRef = this.getDoc(this.collectionName, key)
+        const result = await runTransaction(this.db, async transaction => handleTransactionLogic(transaction, docRef))
         return { status: 'success', data: JSON.stringify(result) }
       } catch (error: any) {
-        if (error.code === 409 && attempt < 5) {
-          console.warn(`Transaction conflict detected, retrying... (${attempt}/5)`)
-          return new Promise((resolve) => setTimeout(() => resolve(executeTransaction(attempt + 1)), 500))
+        const isRetryableError = error.code === 'aborted' || error.code === 'failed-precondition'
+
+        if (isRetryableError && attempt < MAX_RETRIES) {
+          const delay = calculateRetryDelay(attempt)
+          return new Promise(resolve =>
+            setTimeout(() => resolve(executeTransaction(attempt + 1)), delay),
+          )
         }
 
-        console.error('Transaction failed: ', error)
+        console.error('❌ トランザクション失敗: ', error)
         return { status: 'error', data: `Error: ${error}` }
       }
     }
-
+  
     return executeTransaction()
   }
 }
