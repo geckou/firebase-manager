@@ -204,7 +204,10 @@ class FireStoreManager {
     queries = [],
     orderBy = [],
     limit,
-  }: QueryOptions): Promise<Result<Array<{ data: any; ref: DocumentReference }>>> {
+  }: QueryOptions): Promise<Result<Array<{
+      data: any
+      ref: DocumentReference
+    }>>> {
     const collectionName = this.collectionName
   
     // 初期クエリを作成
@@ -257,7 +260,6 @@ class FireStoreManager {
   public createTimestamp() {
     return Timestamp.fromDate(new Date())
   }
-
 
   // トランザクションを使用してドキュメントを更新または作成する
   public async upsertDocTransaction(key: string, updateData: any): Promise<Result<string>> {
