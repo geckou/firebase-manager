@@ -181,7 +181,6 @@ class FireStoreManager {
 
     // ドキュメントのスナップショットを監視する
   public onSnapshot(docId: string, snapshotFunction: OnSnapshotFunction): () => void {
-    console.log('Subscribed to snapshot', docId, this.collectionName)
     const docRef = this.getDoc(this.collectionName, docId)
     
     const unsubscribe = useSnapshot(
